@@ -1,0 +1,103 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import cv2
+import os
+import matplotlib.image as mpimg
+import matplotlib.pyplot as mpplot
+from PIL import Image
+import glob
+import sys
+import imghdr
+from pathlib import Path
+from os import path
+import shutil
+import time
+
+start_time = time.time()
+path = r"C:/Users/Adejoke Ogundipe/Downloads/sample"
+target_folder=r"C:/Users/Adejoke Ogundipe/Downloads/sampleData/errorImages"
+test=r"C:/Users/Adejoke Ogundipe/Downloads/SC2020_FullEntry_COMBINED_no_duplicate.csv"
+name_of_file = "image_description"
+csv_file=r"C:/Users/Adejoke Ogundipe/Downloads/SC2020_FullEntry_COMBINED_no_duplicates.csv"
+
+#data frame 
+df = pd.read_csv(test)
+form_number=df['form_number']
+form_number
+
+#looping through the images folder and get the bad formatted images, move to another folder/dir by 
+images = []
+folders = os.listdir(path)
+for root, directories, files in os.walk(path):   
+    current_directory_path = os.path.abspath(root)
+    
+    for f in files:
+        name, ext = os.path.splitext(f)
+        image_path = current_directory_path + '\\' + f
+        image= cv2.imread(image_path)
+        type_image = imghdr.what(image_path) 
+        string_name=name[:1]
+        if ((type_image) and (len(name) == 10) and (string_name  == '1')):
+            #print('here',f)
+            pass
+        
+        else:
+            print('wrong format')
+            getroot_folder=Path(root).parts[-1]
+            current_path = os.path.abspath(target_folder)
+            destination_path = current_path + '\\' + str(getroot_folder)
+            if (os.path.exists(destination_path)):
+                print(destination_path)
+                shutil.move(image_path,destination_path)
+                form_number= df[df['form_number'] == int(name)]
+                image_description = os.path.join(destination_path, name_of_file+".txt")    
+                bad_imagefile = open(image_description, "a+")
+                if (type_image != True):
+                    bad_imagefile.writelines(str(name) + " " +" is not supported." + '\n')
+                elif(len(name) < 10 or len(name) > 10):
+                    bad_imagefile.writelines( str(name) + " " + " record  not found. " +'\n' )
+                elif(string_name  != '1'):
+                    bad_imagefile.writelines("the naming conversion of the" + str(name) + "is not "+ '\n')
+                if (form_number.empty):
+                    bad_imagefile.writelines("no record found for" + " " + str(name) + '\n')
+                    print('no data record found for:', name)
+                else:
+                    form_number = str(form_number)
+                    bad_imagefile.writelines(form_number)
+                    print('image_description',image_description)
+                    bad_imagefile.close()
+                
+            else:
+                os.mkdir(os.path.join(target_folder + '/' ,getroot_folder))
+                print(destination_path)
+                shutil.move(image_path,destination_path)
+                form_number= df[df['form_number'] == int(name)]
+                image_description = os.path.join(destination_path, name_of_file+".txt")    
+                bad_imagefile = open(image_description, "w")
+                if (type_image != True):
+                    bad_imagefile.write(str(name) + " " + " type is not supported" + '\n')
+                elif(len(name) < 10 or len(name) > 10):
+                    bad_imagefile.write("the length of the image is not supported. " + " "+ str(name) + '\n')
+                elif(string_name  != '1'):
+                    bad_imagefile.write("the naming conversion of the file is wrong " + " " + str(name) + '\n')
+                if (form_number.empty):
+                    bad_imagefile.write("no record found for " + " "+ str(name) + '\n')
+                    print('no data record found for:', name)
+                else:
+                    form_number = str(form_number)
+                    bad_imagefile.writelines(form_number)
+                    print('image_description',image_description)
+                    bad_imagefile.close()
+#                   
+                
+
+            
+print('completed')
+
+print("--- %s seconds ----"%round(time.time()-start_time))
+
+
+
+
+
